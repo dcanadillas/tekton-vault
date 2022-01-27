@@ -1,0 +1,128 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: vault-tfc
+spec:
+  params:
+    - name: tfc_org
+      type: string
+    - name: tfworkspace
+      type: string
+
+  stepTemplate:
+    env:
+      - name: "VAULT_ADDR"
+        value: "http://vault.vault.svc.cluster.local:8200"
+
+  steps:
+    # - name: vault-token
+    #   image: hashicorp/vault
+    #   args:
+    #     - agent
+    #     - -config=/etc/vault/vault-agent-config.hcl
+    #     - -log-level=debug
+    #   env:
+    #     - name: VAULT_ADDR
+    #       value: http://vault.vault.svc.cluster.local:8200
+    #   volumeMounts:
+    #     - mountPath: /etc/vault
+    #       name: config
+    #     - mountPath: /home/vault
+    #       name: shared-data
+
+    - name: vault-status
+      image: gcr.io/cloud-builders/curl
+      script: |
+        #!/usr/bin/bash
+        
+        echo -e "Vault Address is http://${VAULT_ADDR}  \n\n"
+        curl "${VAULT_ADDR}/v1/sys/seal-status"
+
+
+    - name: tfc-workspace
+      image: gcr.io/cloud-builders/curl
+      script: |
+        #!/usr/bin/env bash
+        echo -e "Saving the Workspace ID in a file... \n"
+        TFE_TOKEN="$(cat /vault/secrets/credentials.tfrc.json | awk -F': ' '/token/ {print $NF}' | tr -d "\"")"
+        curl -s -H "Authorization: Bearer $TFE_TOKEN" \
+        -H "Content-Type: application/vnd.api+json" \
+        -X GET \
+        https://app.terraform.io/api/v2//organizations/$(params.tfc_org)/workspaces/$(params.tfworkspace) \
+        |  cut -d : -f3  | cut -d , -f1 | tr -d '"' > /workspace/workspace_id
+        echo "The Workspace ID is: $(cat /workspace/workspace_id)"
+
+      volumeMounts:
+        - mountPath: /vault/secrets
+          name: shared-data
+    - name: run-json
+      image: ubuntu
+      script: |
+        #!/usr/bin/env bash
+        echo -e "\U0001F37B Creating the payload to run the Terraform Workspace \U0001F37B\n\n"
+        cat - > /workspace/run.json <<EOF
+        {
+          "data":{
+            "attributes":{
+              "is-destroy": false,
+              "message": "API Apply from Tekton: $HOSTNAME 🎉 🍻 "
+            },
+            "type":"runs",
+            "relationships":{
+              "workspace":{
+                "data": {
+                  "type": "workspaces",
+                  "id": "$(cat /workspace/workspace_id)"
+                }
+              }
+            }
+          }
+        }
+        EOF
+        cat /workspace/run.json
+
+    - name: tfc-run
+      image: gcr.io/cloud-builders/curl
+      script: |
+        #!/usr/bin/env sh
+        TFE_TOKEN="$(cat /vault/secrets/credentials.tfrc.json | awk -F': ' '/token/ {print $NF}' | tr -d "\"")"
+        curl -H "Authorization: Bearer $TFE_TOKEN" \
+        -H "Content-Type: application/vnd.api+json" \
+        -d @/workspace/run.json \
+        https://app.terraform.io/api/v2/runs
+
+      volumeMounts:
+        - mountPath: /vault/secrets
+          name: shared-data
+
+  sidecars:
+    - image: hashicorp/vault
+      name: agent
+      securityContext:
+        privileged: true
+      args:
+        - agent
+        - -config=/etc/vault/vault-agent-config.hcl
+        - -log-level=debug
+      env:
+        - name: VAULT_ADDR
+          value: http://vault.vault.svc.cluster.local:8200
+      
+      volumeMounts:
+        - mountPath: /etc/vault
+          name: config
+        - mountPath: /vault/secrets
+          name: shared-data
+        - mountPath: /home/vault
+          name: token-data
+  volumes:
+    - configMap:
+        items:
+          - key: vault-agent-config.hcl
+            path: vault-agent-config.hcl
+        name: vault-agent-config
+      name: config
+    - emptyDir: {}
+      name: shared-data
+    - emptyDir: {}
+      name: token-data

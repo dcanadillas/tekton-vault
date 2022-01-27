@@ -1,0 +1,41 @@
+apiVersion: v1
+data:
+  vault-agent-config.hcl: |
+    # Comment this out if running as sidecar instead of initContainer
+    exit_after_auth = false
+
+    pid_file = "/home/vault/pidfile"
+
+    auto_auth {
+        method "kubernetes" {
+            mount_path = "auth/kubernetes"
+            config = {
+                role = "tekton"
+            }
+        }
+
+        sink "file" {
+            config = {
+                path = "/home/vault/.vault-token"
+            }
+        }
+    }
+
+    template {
+        destination = "/vault/secrets/credentials.tfrc.json"
+        contents = <<EOT
+    {{- with secret "terraform/creds/dcanadillas" }}
+    {
+      "credentials": {
+        "app.terraform.io": {
+          "token": "{{ .Data.token }}"
+        }
+      }
+    }  
+    {{ end }}
+    EOT
+    }
+kind: ConfigMap
+metadata:
+  name: vault-agent-config
+  namespace: default

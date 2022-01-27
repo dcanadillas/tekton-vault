@@ -1,0 +1,93 @@
+#### THIS IS JUST A PLAYGROUND TEKTON TAST ####
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: vault
+spec:
+  params:
+    - name: vaultsecret
+      type: string
+      default: "vault-token"
+  stepTemplate:
+    env:
+      - name: VAULT_ADDR
+        value: http://vault.vault.svc.cluster.local:8200
+
+  steps:
+    # - name: vault-token
+    #   image: hashicorp/vault
+    #   args:
+    #     - agent
+    #     - -config=/etc/vault/vault-agent-config.hcl
+    #     - -log-level=debug
+    #   env:
+    #     - name: VAULT_ADDR
+    #       value: http://vault.vault.svc.cluster.local:8200
+    #   volumeMounts:
+    #     - mountPath: /etc/vault
+    #       name: config
+    #     - mountPath: /home/vault
+    #       name: shared-data
+
+    - name: vault-status
+      image: hashicorp/vault
+      script: |
+        #!/usr/bin/env sh
+        vault write -field=token \
+        auth/kubernetes/login \
+        role=tekton \
+        jwt=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) # \
+        > $HOME/.vault-token
+        ls /
+        echo "----"
+        cat "/home/vault/.vault-token"
+        echo "----"
+        sleep 1
+        cat "/vault/secrets/credentials.trfc.json"
+        # vault read -field=token terraform/creds/dcanadillas-role > /workspace/.tfc_token
+        
+        # - name: VAULT_NAMESPACE
+        #   value: admin
+        # - name: VAULT_TOKEN
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: $(params.vaultsecret)
+        #       key: vault_token
+      volumeMounts:
+      #   - mountPath: /etc/vault
+      #     name: config
+        - mountPath: /vault/secrets
+          name: shared-data
+        - mountPath: /home/vault
+          name: token-data
+  sidecars:
+    - image: hashicorp/vault
+      name: agent
+      securityContext:
+        privileged: true
+      args:
+        - agent
+        - -config=/etc/vault/vault-agent-config.hcl
+        - -log-level=debug
+      env:
+        - name: VAULT_ADDR
+          value: http://vault.vault.svc.cluster.local:8200
+      
+      volumeMounts:
+        - mountPath: /etc/vault
+          name: config
+        - mountPath: /vault/secrets
+          name: shared-data
+        - mountPath: /home/vault
+          name: token-data
+  volumes:
+    - configMap:
+        items:
+          - key: vault-agent-config.hcl
+            path: vault-agent-config.hcl
+        name: vault-agent-config
+      name: config
+    - emptyDir: {}
+      name: shared-data
+    - emptyDir: {}
+      name: token-data

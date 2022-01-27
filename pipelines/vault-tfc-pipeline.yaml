@@ -1,0 +1,22 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: vault-tfc-pipeline
+spec:
+  params:
+    - name: tfc-workspace
+      type: string
+      description: Workspace Name
+    - name: tfc-organization
+      type: string
+      description: Terraform Cloud Org
+      
+  tasks:
+    - name: run-tfc
+      taskRef:
+        name: vault-tfc
+      params:
+        - name: tfworkspace
+          value: "$(params.tfc-workspace)"
+        - name: tfc_org
+          value: "$(params.tfc-organization)"
