@@ -171,7 +171,7 @@ From main directory of this repo, execute the following in your terminal:
 kubectl apply -f ./pipelines
 ```
 
-A [Tekton Task]() will be deployed:
+A [Tekton Task](./pipelines/vault-tfc-task.yaml) will be deployed:
 
 ```yaml
 apiVersion: tekton.dev/v1beta1
@@ -199,7 +199,7 @@ spec:
 ...
 ```
 
-Also, a [Tekton Pipeline]():
+Also, a [Tekton Pipeline](./pipelines/vault-tfc-pipeline.yaml):
 
 ```yaml
 apiVersion: tekton.dev/v1beta1
