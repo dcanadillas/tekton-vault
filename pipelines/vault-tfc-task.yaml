@@ -35,7 +35,7 @@ spec:
       script: |
         #!/usr/bin/bash
         
-        echo -e "Vault Address is http://${VAULT_ADDR}  \n\n"
+        echo -e "Vault Address is http://${VAULT_ADDR}  \xF0\x9F\x8D\xBB\x20\x0A\n\n"
         curl "${VAULT_ADDR}/v1/sys/seal-status"
 
 
@@ -59,7 +59,7 @@ spec:
       image: ubuntu
       script: |
         #!/usr/bin/env bash
-        echo -e "\U0001F37B Creating the payload to run the Terraform Workspace \U0001F37B\n\n"
+        echo -e "Creating the payload to run the Terraform Workspace \xF0\x9F\x8D\xBB\x20\x0A\n\n"
         cat - > /workspace/run.json <<EOF
         {
           "data":{
@@ -84,7 +84,8 @@ spec:
     - name: tfc-run
       image: gcr.io/cloud-builders/curl
       script: |
-        #!/usr/bin/env sh
+        #!/usr/bin/env bash
+        echo -e "Running Terraform Cloud Workspace $(cat /workspace/workspace_id)! \xF0\x9F\x8D\xBB\x20\x0A"
         TFE_TOKEN="$(cat /vault/secrets/credentials.tfrc.json | awk -F': ' '/token/ {print $NF}' | tr -d "\"")"
         curl -H "Authorization: Bearer $TFE_TOKEN" \
         -H "Content-Type: application/vnd.api+json" \

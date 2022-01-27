@@ -64,7 +64,7 @@ Install Tekton CLI tool:
     ```bash
     brew install tektoncd-cli
     ```
-* On Linux:
+* On Linux (Debian/Ubuntu based):
     ```bash
     sudo apt update;sudo apt install -y gnupg
     sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3EFE0E0A2F2F60AA

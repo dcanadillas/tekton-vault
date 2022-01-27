@@ -24,7 +24,7 @@ data:
     template {
         destination = "/vault/secrets/credentials.tfrc.json"
         contents = <<EOT
-    {{- with secret "terraform/creds/dcanadillas" }}
+    {{- with secret "terraform/creds/tekton" }}
     {
       "credentials": {
         "app.terraform.io": {
