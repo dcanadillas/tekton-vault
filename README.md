@@ -269,7 +269,7 @@ See the pipeline definition in the UI URL [http://localhost:9097/#/namespaces/de
 
 To run the pipeline by CLI, use Tekton CLI and passing the right parameters:
 ```bash
-tkn -p start \
+tkn p start \
 -s tekton-sa \
 -p tfc-organization=<YOUR_TFC_ORG> \
 -p tfc-workspace=<YOUR_TFC_WORKSPACE>

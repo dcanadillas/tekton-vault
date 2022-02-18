@@ -10,7 +10,7 @@ endef
 all: install configure
 
 install:
-	./00-install.sh
+	./00-install.sh 
 # Installing manually Tekton CLI in /usr/local/bin
 ifeq  ($(OS),linux);then
 	@curl -L "https://github.com/tektoncd/cli/releases/download/v0.21.0/tkn_0.21.0_Linux_$(PLATFORM).tar.gz" -o /tmp/tektoncd.tar.gz
@@ -24,7 +24,6 @@ endif
 	else \
 		echo "\nTekton CLI already installed...\n"; \
 	fi \
-	
 
 configure:
 ifdef TFEORG

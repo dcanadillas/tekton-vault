@@ -81,7 +81,7 @@ kubectl exec vault-0 -n $VAULT_KNS -- vault write auth/kubernetes/role/tekton \
 kubectl exec vault-0 -n $VAULT_KNS -- vault secrets enable terraform
 
 kubectl exec vault-0 -n $VAULT_KNS -- vault write terraform/config token="$TOKEN"
-kubectl exec vault-0 -n $VAULT_KNS -- vault write terraform/role/tekton user_id=$TFUSERID ttl=5m
+kubectl exec vault-0 -n $VAULT_KNS -- vault write terraform/role/tekton user_id=$TFUSERID ttl=10m
 
 
 
