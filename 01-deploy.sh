@@ -94,8 +94,6 @@ EOF
 
 
 
-#kubectl create sa tekton -n $TKNS
-
 # FUN STARTS HERE
 # Deploy Vault SA for JWT Token Review, Tekton pipelines service account and Vault Agent ConfigMap
 kubectl apply -f ./config
