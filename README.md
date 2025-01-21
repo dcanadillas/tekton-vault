@@ -83,10 +83,10 @@ Also , as a recommendation, you could do a `terraform login` from your terminal 
 Once you have a Terraform Cloud user API token, configure Vault with the provided script:
 
 ```bash
-./01-deploy.sh <YOUR_TFC_ORG> <YOUR_TFC_USER>
+make deploy TFEORG=<YOUR_TFC_ORG> TFEUSER=<YOUR_TFC_USER>
 ```
 
-> NOTE: The previous script is basically consifiguring the recently deployed Vault, for the Kubernetes Auth method and the Terraform Cloud secrets engine. It does using some Terraform Cloud info needed, by automatically retrieving your Terraform Cloud user ID using a [Terraform Cloud Organization](https://www.terraform.io/cloud-docs/users-teams-organizations/organizations) and your Terraform Cloud user name. Manually would be something similar to:
+> NOTE: The previous script is basically configuring the recently deployed Vault, for the Kubernetes Auth method and the Terraform Cloud secrets engine. It does using some Terraform Cloud info needed, by automatically retrieving your Terraform Cloud user ID using a [Terraform Cloud Organization](https://www.terraform.io/cloud-docs/users-teams-organizations/organizations) and your Terraform Cloud user name. Manually would be something similar to:
 >
 > ```
 > export TOKEN=<YOUR_TERRAFORM_CLOUD_TOKEN>
